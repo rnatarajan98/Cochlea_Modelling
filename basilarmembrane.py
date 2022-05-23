@@ -23,3 +23,9 @@ def gammatone_freqs(flims, nfilt):
     erbs = np.linspace(erblims[0], erblims[1], nfilt)
     filts = [erb2f(i) for i in erbs]
     return filts
+
+def gammatone_filterbank(flims, nfilt, fs):
+    filt_locs = basilarmembrane.gammatone_freqs(flims, nfilt)
+    bands = {str(f): {"filter":gammatone(f, fs)} for f in filt_locs}
+    filterbank = {"type":"gammatone", "sampling_frequency":fs, "bands":bands}
+    return filterbank
