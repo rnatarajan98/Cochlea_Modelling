@@ -4,11 +4,11 @@ import numpy as np
 
 #Glasberg and Moore, 1990)
 def f2erb(f):
-    erb = 0.108*f + 24.7
+    erb = 11.17268 * np.log(1 + (46.06538 * f)/(f + 14678.40))
     return erb
 
 def erb2f(erb):
-    f = (erb - 24.7)/0.108 
+    f = 676170.4/(47.06538 - np.exp(0.08950404*erb)) - 14678.49
     return f
 
 
