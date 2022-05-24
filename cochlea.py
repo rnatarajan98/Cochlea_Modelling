@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import IHC
 import basilarmembrane
 import copy
+import tools
 
 class cochlea:
     def __init__(self, audio=None, fs=None):
@@ -15,11 +16,15 @@ class cochlea:
         self.signal_input = audio
                 
     def set_BM(self, filter_type, flims, nfilt):
+        self.filter_type = filter_type
         self.bm = dict()
         if filter_type == "gammatone":
-            self.bm['type'] = "gammatone"
+            self.bm['type'] = filter_type
             filt_locs = basilarmembrane.gammatone_freqs(flims, nfilt)
-            self.bm['bands'] = {str(f): {"filter":basilarmembrane.gammatone(f, self.fs)} for f in filt_locs}        
+            self.bm['bands'] = {str(f): {"filter":basilarmembrane.gammatone(f, self.fs)} for f in filt_locs}      
+        if filter_type == "transp":
+            self.bm['type'] = filter_type
+            self.bm['bands'] = {"fullband": {"filter":basilarmembrane.transparent(self.fs)}}      
         
     def filter_bm(self):
         for band in self.bm['bands'].values():
@@ -41,16 +46,15 @@ class cochlea:
     
     def visualise_filters(self):
         for band in self.bm['bands'].values():
-            b, a = band['filter'].b, band['filter'].a
-            w, h = signal.freqz(b, a, fs=self.fs)
+            w, h = band['filter'].visualise()
 
-            plt.plot(w, 20 * np.log10(abs(h)))
+            plt.plot(w, tools.f2db(h))
 
         #plt.xscale('log')
-        plt.title('Gammatone filter frequency response')
+        plt.title('{} filter frequency response'.format(self.filter_type))
         plt.xlabel('Frequency')
         plt.ylabel('Amplitude [dB]')
         plt.margins(0, 0.1)
         #plt.axvline(ffilt, color='xkcd:pale grey') # cutoff frequency
-        plt.xlim(0, 7000)
+        #plt.xlim(0, 22000)
         plt.grid(which='both', axis='both')

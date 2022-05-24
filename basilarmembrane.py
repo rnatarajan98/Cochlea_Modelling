@@ -15,8 +15,27 @@ class gammatone:
     def filter(self, input):
         sig_filt = signal.lfilter(self.b, self.a, input)
         return sig_filt
-        
+    
+    def visualise(self):
+        w, h = signal.freqz(self.b, self.a, fs=self.fs)
+        return w, h
 
+        
+class transparent:
+    def __init__(self, fs):
+        self.fs = fs
+        flims = [20, 20000]
+        self.sos = signal.butter(1, flims, btype='band', fs=fs, output='sos')
+        
+    def filter(self, input):
+        sig_filt = signal.sosfilt(self.sos, input)
+        return sig_filt
+    
+    def visualise(self):
+        w, h = signal.sosfreqz(self.sos, fs=self.fs)
+        return w, h
+    
+        
 #Glasberg and Moore, 1990)
 def f2erb(f):
     erb = 11.17268 * np.log(1 + (46.06538 * f)/(f + 14678.40))
