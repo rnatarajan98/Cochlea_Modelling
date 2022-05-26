@@ -60,11 +60,14 @@ class cochlea:
     def plot_bm(self, ax):
         signal_bands = self.get_signals_bm()
         ax = self.plot_signals(signal_bands, ax)
+        ax.set_ylabel('Band Frequency (Post BM filtering)')
+
         return ax
         
     def plot_ihc(self, ax):
         signal_bands = self.get_signals_ihc()
         ax = self.plot_signals(signal_bands, ax)
+        ax.set_ylabel('Band Frequency (Post IHC filtering)')
         return ax
     
     def plot_signals(self, signal_bands, ax):
@@ -81,7 +84,6 @@ class cochlea:
             ax.plot(signal, color='k')
         ax.set_yticks(yticks)
         ax.set_yticklabels(yticklabels)
-        ax.set_ylabel('Band Frequency')
         ax.set_xlabel('Sample n')
         return ax
         

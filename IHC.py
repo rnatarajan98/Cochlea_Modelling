@@ -1,5 +1,6 @@
 from scipy import signal
 import tools
+import numpy as np
 
 class IHC:
     def __init__(self):
@@ -55,7 +56,7 @@ class Lowpass:
         
 class Hilbert:    
     def filter(self, signal_input):
-        signal_output = signal.hilbert(signal_input)
+        signal_output = np.abs(signal.hilbert(signal_input))
         return signal_output
         
         
