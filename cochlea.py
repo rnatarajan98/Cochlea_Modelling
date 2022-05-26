@@ -59,24 +59,33 @@ class cochlea:
     
     def plot_bm(self, ax):
         signal_bands = self.get_signals_bm()
-        ax = self.plot_signals(signal_bands, ax)
-        ax.set_ylabel('Band Frequency (Post BM filtering)')
-
-        return ax
-        
-    def plot_ihc(self, ax):
-        signal_bands = self.get_signals_ihc()
-        ax = self.plot_signals(signal_bands, ax)
-        ax.set_ylabel('Band Frequency (Post IHC filtering)')
-        return ax
-    
-    def plot_signals(self, signal_bands, ax):
         signal_min = min(min(sig) for sig in signal_bands.values())
         signal_max = max(max(sig) for sig in signal_bands.values())
 
         signal_stacked = {freq: i+tools.rescale(band, (-0.45, 0.45), (signal_min, signal_max)) 
                              for i, (freq, band) 
                              in enumerate(signal_bands.items())}
+        
+        ax = self.plot_signals(signal_stacked, ax)
+        ax.set_ylabel('Band Frequency (Post BM filtering)')
+        
+
+        return ax
+        
+    def plot_ihc(self, ax):
+        signal_bands = self.get_signals_ihc()
+        signal_min = min(min(sig) for sig in signal_bands.values())
+        signal_max = max(max(sig) for sig in signal_bands.values())
+
+        signal_stacked = {freq: i+tools.rescale(band, (0, 0.45), (signal_min, signal_max)) 
+                             for i, (freq, band) 
+                             in enumerate(signal_bands.items())}
+        
+        ax = self.plot_signals(signal_stacked, ax)
+        ax.set_ylabel('Band Frequency (Post IHC filtering)')
+        return ax
+    
+    def plot_signals(self, signal_stacked, ax):
         yticks = np.arange(0, self.nfilt, 1, dtype=int)
         yticklabels = [int(float(f)) for f in signal_stacked.keys()]
 

@@ -18,6 +18,10 @@ class IHC:
         hilbert = Hilbert()
         self.processes.append(hilbert)
         
+    def add_bernstein1999(self, fs, N=2, cutoff=425):
+        bernstein1999 = Bernstein1999(fs, N, cutoff)
+        self.processes.append(bernstein1999)
+        
     def filter(self, signal):
         for process in self.processes:
             signal = process.filter(signal)
@@ -31,7 +35,7 @@ class HalfwaveRectification:
         return signal_input
 
 class Lowpass:
-    def __init__(self, fs, N=1, cutoff=1000):
+    def __init__(self, fs, N, cutoff):
         self.fs = fs
         self.N = N
         self.cutoff = cutoff
@@ -58,5 +62,26 @@ class Hilbert:
     def filter(self, signal_input):
         signal_output = np.abs(signal.hilbert(signal_input))
         return signal_output
+    
+class Bernstein1999:
+    def __init__(self, fs, N, cutoff):     
+        #Hilbert
+        self.hilbert = Hilbert()
+        
+        #Lowpass
+        self.fs = fs
+        self.N = N
+        self.cutoff = cutoff
+        nyq = fs / 2
+        cutoff_normalised = cutoff/nyq
+        self.b, self.a = signal.butter(N, cutoff_normalised, btype='low', analog=False)
+    
+    def filter(self, signal_input):
+        signal_output = np.power((np.power(self.hilbert.filter(signal_input), -0.77) * signal_input), 2)
+        return signal_output
+        
+        
+        
+    
         
         
