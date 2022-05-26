@@ -13,6 +13,10 @@ class IHC:
         lowpass = Lowpass(fs, N, cutoff)
         self.processes.append(lowpass)
         
+    def add_hilbert(self):
+        hilbert = Hilbert()
+        self.processes.append(hilbert)
+        
     def filter(self, signal):
         for process in self.processes:
             signal = process.filter(signal)
@@ -49,6 +53,9 @@ class Lowpass:
         #plt.xlim(0, 22000)
         plt.grid(which='both', axis='both')
         
-        
+class Hilbert:    
+    def filter(self, signal_input):
+        signal_output = signal.hilbert(signal_input)
+        return signal_output
         
         

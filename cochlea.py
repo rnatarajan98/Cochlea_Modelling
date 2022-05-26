@@ -57,12 +57,21 @@ class cochlea:
             self.ihc['bands'][f] = signal_filt
 
     
-    def plot_signal(self, key, ax):
-        signal_bands = {freq: band['signal_bm'] for freq, band in self.bm['bands'].items()}
+    def plot_bm(self, ax):
+        signal_bands = self.get_signals_bm()
+        ax = self.plot_signals(signal_bands, ax)
+        return ax
+        
+    def plot_ihc(self, ax):
+        signal_bands = self.get_signals_ihc()
+        ax = self.plot_signals(signal_bands, ax)
+        return ax
+    
+    def plot_signals(self, signal_bands, ax):
         signal_min = min(min(sig) for sig in signal_bands.values())
         signal_max = max(max(sig) for sig in signal_bands.values())
 
-        signal_stacked = {freq: i+tools.rescale(band, (-0.5, 0.5), (signal_min, signal_max)) 
+        signal_stacked = {freq: i+tools.rescale(band, (-0.45, 0.45), (signal_min, signal_max)) 
                              for i, (freq, band) 
                              in enumerate(signal_bands.items())}
         yticks = np.arange(0, self.nfilt, 1, dtype=int)
@@ -72,6 +81,9 @@ class cochlea:
             ax.plot(signal, color='k')
         ax.set_yticks(yticks)
         ax.set_yticklabels(yticklabels)
+        ax.set_ylabel('Band Frequency')
+        ax.set_xlabel('Sample n')
+        return ax
         
     
     def visualise_filters(self):
