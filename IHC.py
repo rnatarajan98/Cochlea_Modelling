@@ -77,7 +77,7 @@ class Bernstein1999:
         self.b, self.a = signal.butter(N, cutoff_normalised, btype='low', analog=False)
     
     def filter(self, signal_input):
-        signal_output = np.power((np.power(self.hilbert.filter(signal_input), -0.77) * signal_input), 2)
+        signal_output = np.power((np.power(self.hilbert.filter(signal_input), 0.23)), 2)
         return signal_output
         
         
