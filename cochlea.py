@@ -1,7 +1,7 @@
 from scipy import signal
 import numpy as np
 import matplotlib.pyplot as plt
-import IHC
+from IHC import IHC
 import basilarmembrane
 import copy
 import tools
@@ -17,6 +17,7 @@ class cochlea:
                 
     def set_BM(self, filter_type, flims, nfilt):
         self.filter_type = filter_type
+        self.nfilt = nfilt
         self.bm = dict()
         if filter_type == "gammatone":
             self.bm['type'] = filter_type
@@ -31,18 +32,33 @@ class cochlea:
             filt = band['filter']
             sig_filt = filt.filter(self.signal_input)
             band['signal_bm'] = sig_filt
-    
+            
+    def set_ihc(self):
+        self.ihc = IHC()
+        
     def filter_ihc(self):
-        self.ihc = dict()
-        signal_ihc = []
         for f, band in self.bm['bands'].items():
             signal_bm = copy.deepcopy(band['signal_bm'])
-            signal_halfwave = IHC.halfwave_rectification(signal_bm)
-            #signal_halfwave = signal_bm
-            signal_lowpass = IHC.lowpass(signal_halfwave, self.fs, 1, 1000)
-            self.ihc[f] = signal_lowpass
-            signal_ihc.append(signal_lowpass)
-        return signal_ihc
+            signal_filt = self.ihc.filter(signal_bm)
+            band['signal_ihc'] = signal_filt
+
+    
+    def plot_signal(self, key, ax):
+        signal_bands = {freq: band['signal_bm'] for freq, band in self.bm['bands'].items()}
+        signal_min = min(min(sig) for sig in signal_bands.values())
+        signal_max = max(max(sig) for sig in signal_bands.values())
+
+        signal_stacked = {freq: i+tools.rescale(band, (-0.5, 0.5), (signal_min, signal_max)) 
+                             for i, (freq, band) 
+                             in enumerate(signal_bands.items())}
+        yticks = np.arange(0, self.nfilt, 1, dtype=int)
+        yticklabels = [int(float(f)) for f in signal_stacked.keys()]
+
+        for freq, signal in signal_stacked.items():
+            ax.plot(signal, color='k')
+        ax.set_yticks(yticks)
+        ax.set_yticklabels(yticklabels)
+        
     
     def visualise_filters(self):
         for band in self.bm['bands'].values():
