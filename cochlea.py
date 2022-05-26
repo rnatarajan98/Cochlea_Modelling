@@ -33,14 +33,28 @@ class cochlea:
             sig_filt = filt.filter(self.signal_input)
             band['signal_bm'] = sig_filt
             
+    def get_signals_bm(self):
+        signals = dict()
+        for f, band in self.bm['bands'].items():
+            signals[f] = band['signal_bm']
+        return signals
+            
+    def get_signals_ihc(self):
+        signals = dict()
+        for f, band in self.ihc['bands'].items():
+            signals[f] = band
+        return signals
+            
     def set_ihc(self):
-        self.ihc = IHC()
+        ihc = IHC()
+        self.ihc = {"filter": ihc} 
         
     def filter_ihc(self):
+        self.ihc['bands'] = dict()
         for f, band in self.bm['bands'].items():
             signal_bm = copy.deepcopy(band['signal_bm'])
-            signal_filt = self.ihc.filter(signal_bm)
-            band['signal_ihc'] = signal_filt
+            signal_filt = self.ihc['filter'].filter(signal_bm)
+            self.ihc['bands'][f] = signal_filt
 
     
     def plot_signal(self, key, ax):
