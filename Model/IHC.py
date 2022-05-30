@@ -1,5 +1,5 @@
 from scipy import signal
-import tools
+import Model.tools
 import numpy as np
 
 class IHC:
@@ -21,6 +21,9 @@ class IHC:
     def add_bernstein1999(self, fs, N=2, cutoff=425):
         bernstein1999 = Bernstein1999(fs, N, cutoff)
         self.processes.append(bernstein1999)
+        
+    def clear_filters(self):
+        self.processes = []
         
     def filter(self, signal):
         for process in self.processes:

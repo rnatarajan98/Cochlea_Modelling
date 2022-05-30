@@ -1,10 +1,11 @@
 from scipy import signal
 import numpy as np
 import matplotlib.pyplot as plt
-from IHC import IHC
-import basilarmembrane
 import copy
-import tools
+
+from Model.IHC import IHC
+import Model.basilarmembrane as basilarmembrane
+import Model.tools as tools
 
 class cochlea:
     def __init__(self, audio=None, fs=None):

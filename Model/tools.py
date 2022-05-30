@@ -27,3 +27,4 @@ def f2db(f):
 def db2f(db):
     f = 10^(db/20)
     return f
+

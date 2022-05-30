@@ -1,7 +1,6 @@
 from scipy import signal
 import numpy as np
 import matplotlib.pyplot as plt
-import IHC
         
 
 class gammatone:
