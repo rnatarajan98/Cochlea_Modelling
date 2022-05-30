@@ -25,5 +25,5 @@ def f2db(f):
     return db
 
 def db2f(db):
-    f = 10&(db/20)
+    f = 10^(db/20)
     return f
