@@ -47,6 +47,6 @@ def erb2f(erb):
 def gammatone_freqs(flims, nfilt):
     erblims = [f2erb(flims[0]), f2erb(flims[1])]
     erbs = np.linspace(erblims[0], erblims[1], nfilt)
-    filts = [erb2f(i) for i in erbs]
+    filts = [int(erb2f(i)) for i in erbs]
     return filts
 
