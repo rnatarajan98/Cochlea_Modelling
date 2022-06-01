@@ -20,11 +20,13 @@ def rescale_wav(signal, tolower=0, toupper=1):
     return signal_rescale
 
 
-def f2db(f):
-    db = 20*np.log10(np.maximum(np.abs(f), 1e-5))
+def amp2db(sig, reference=1):
+    db = 20*np.log10(np.maximum(np.abs(sig), 1e-5)/reference)
     return db
 
-def db2f(db):
-    f = 10^(db/20)
-    return f
+def dbgain(signal, gain):
+    x = np.power(10, gain)
+    signal_amp = np.multiply(signal, np.power(10, gain/20))
+    return signal_amp
+
 

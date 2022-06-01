@@ -5,6 +5,7 @@ import copy
 
 from Model.IHC import IHC
 import Model.basilarmembrane as basilarmembrane
+import Model.AN as AN
 import Model.tools as tools
 
 class cochlea:
@@ -57,6 +58,16 @@ class cochlea:
             signal_filt = self.ihc['filter'].filter(signal_bm)
             self.ihc['bands'][f] = signal_filt
 
+    def set_an(self, neuron_type="meddis1986", num_neurons=10):
+        self.an = dict()
+        self.an['type'] = neuron_type
+        if neuron_type == "meddis1986":
+            self.an['bands'] = {str(f): {"neurons": AN.Meddis1986(num_neurons, self.fs)} for f in self.ihc['bands'].keys()}
+    
+    def filter_an(self):
+        for f, signal in self.get_signals_ihc().items():
+            signal_ihc = copy.deepcopy(signal)
+            self.an['bands'][f]['neurons'].simulate(signal)
     
     def plot_bm(self, ax):
         signal_bands = self.get_signals_bm()
@@ -102,7 +113,7 @@ class cochlea:
         for band in self.bm['bands'].values():
             w, h = band['filter'].visualise()
 
-            plt.plot(w, tools.f2db(h))
+            plt.plot(w, tools.amp2db(h))
 
         #plt.xscale('log')
         plt.title('{} filter frequency response'.format(self.filter_type))
