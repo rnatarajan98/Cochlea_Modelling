@@ -13,10 +13,16 @@ class cochlea:
         if audio is not None:
             set_input(audio, fs)
     
+    ######################################################################
+    ###################################################################### 
+    # Input setting functions
     def set_input(self, audio, fs):
         self.fs = fs
         self.signal_input = audio
-                
+        
+    ######################################################################
+    ###################################################################### 
+    # Stage 1 - Basilar Membrane            
     def set_BM(self, filter_type, flims, nfilt):
         self.filter_type = filter_type
         self.nfilt = nfilt
@@ -40,35 +46,22 @@ class cochlea:
         for f, band in self.bm['bands'].items():
             signals[f] = band['signal_bm']
         return signals
-            
-    def get_signals_ihc(self):
-        signals = dict()
-        for f, band in self.ihc['bands'].items():
-            signals[f] = band
-        return signals
-            
-    def set_ihc(self):
-        ihc = IHC()
-        self.ihc = {"filter": ihc} 
-        
-    def filter_ihc(self):
-        self.ihc['bands'] = dict()
-        for f, band in self.bm['bands'].items():
-            signal_bm = copy.deepcopy(band['signal_bm'])
-            signal_filt = self.ihc['filter'].filter(signal_bm)
-            self.ihc['bands'][f] = signal_filt
+    
+    def visualise_filterbank(self):
+        for band in self.bm['bands'].values():
+            w, h = band['filter'].visualise()
 
-    def set_an(self, neuron_type="meddis1986", num_neurons=10):
-        self.an = dict()
-        self.an['type'] = neuron_type
-        if neuron_type == "meddis1986":
-            self.an['bands'] = {str(f): {"neurons": AN.Meddis1986(num_neurons, self.fs)} for f in self.ihc['bands'].keys()}
-    
-    def filter_an(self):
-        for f, signal in self.get_signals_ihc().items():
-            signal_ihc = copy.deepcopy(signal)
-            self.an['bands'][f]['neurons'].simulate(signal)
-    
+            plt.plot(w, tools.amp2db(h))
+
+        #plt.xscale('log')
+        plt.title('{} filter frequency response'.format(self.filter_type))
+        plt.xlabel('Frequency')
+        plt.ylabel('Amplitude [dB]')
+        plt.margins(0, 0.1)
+        #plt.axvline(ffilt, color='xkcd:pale grey') # cutoff frequency
+        #plt.xlim(0, 22000)
+        plt.grid(which='both', axis='both')
+        
     def plot_bm(self, ax):
         signal_bands = self.get_signals_bm()
         signal_min = min(min(sig) for sig in signal_bands.values())
@@ -83,7 +76,27 @@ class cochlea:
         
 
         return ax
+    
+    ######################################################################
+    ######################################################################    
+    # Stage 2 - Basilar Membrane
+    def set_ihc(self):
+        ihc = IHC()
+        self.ihc = {"filter": ihc} 
         
+    def filter_ihc(self):
+        self.ihc['bands'] = dict()
+        for f, band in self.bm['bands'].items():
+            signal_bm = copy.deepcopy(band['signal_bm'])
+            signal_filt = self.ihc['filter'].filter(signal_bm)
+            self.ihc['bands'][f] = signal_filt
+            
+    def get_signals_ihc(self):
+        signals = dict()
+        for f, band in self.ihc['bands'].items():
+            signals[f] = band
+        return signals
+
     def plot_ihc(self, ax):
         signal_bands = self.get_signals_ihc()
         signal_min = min(min(sig) for sig in signal_bands.values())
@@ -97,6 +110,57 @@ class cochlea:
         ax.set_ylabel('Band Frequency (Post IHC filtering)')
         return ax
     
+    ######################################################################
+    ######################################################################    
+    # Stage 3 - Auditory Neuron
+    def set_an(self, neuron_type="meddis1986", num_neurons=10):
+        self.an = dict()
+        self.an['type'] = neuron_type
+        if neuron_type == "meddis1986":
+            self.an['bands'] = {str(f): {"neurons": AN.Meddis1986(num_neurons, self.fs)} for f in self.ihc['bands'].keys()}
+    
+    def filter_an(self):
+        for f, signal in self.get_signals_ihc().items():
+            signal_ihc = copy.deepcopy(signal)
+            self.an['bands'][f]['neurons'].simulate(signal)
+            
+    def plot_raster(self, ax, padding=10):
+        rasters = []
+        yticks = []
+        yticklabels = []
+        for f, band in self.an['bands'].items():
+            neurons = band['neurons']
+            yticks.append(len(rasters) * (neurons.num_neurons + padding))
+            yticklabels.append(f)
+            rasters.append(neurons.raster(padding))
+            
+        rasters = [item for sublist in rasters for item in sublist]
+            
+        ax.eventplot(rasters, colors='k')
+        ax.set_yticks(yticks)
+        ax.set_yticklabels(yticklabels)
+        return ax
+    
+    def get_psth(self, binwidth=0.1):
+        #nbands = len(self.an['bands'])
+        psths = dict()
+        psth_locs = []
+        
+        for f, band in self.an['bands'].items():
+            neurons = band['neurons']
+            psths[f], psth_loc = neurons.psth()
+        return psths, psth_loc
+            
+        
+            
+        
+    
+    
+        
+    
+    ######################################################################
+    ######################################################################    
+    # General Functions
     def plot_signals(self, signal_stacked, ax):
         yticks = np.arange(0, self.nfilt, 1, dtype=int)
         yticklabels = [int(float(f)) for f in signal_stacked.keys()]
@@ -109,17 +173,3 @@ class cochlea:
         return ax
         
     
-    def visualise_filters(self):
-        for band in self.bm['bands'].values():
-            w, h = band['filter'].visualise()
-
-            plt.plot(w, tools.amp2db(h))
-
-        #plt.xscale('log')
-        plt.title('{} filter frequency response'.format(self.filter_type))
-        plt.xlabel('Frequency')
-        plt.ylabel('Amplitude [dB]')
-        plt.margins(0, 0.1)
-        #plt.axvline(ffilt, color='xkcd:pale grey') # cutoff frequency
-        #plt.xlim(0, 22000)
-        plt.grid(which='both', axis='both')
